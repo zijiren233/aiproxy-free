@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aiproxy-free-env
+data:
+  DEBUG: "{{ .DEBUG }}"
+  DEBUG_SQL: "{{ .DEBUG_SQL }}"
+  DSN: "{{ .DSN }}"
+  UPSTREAM_BASE_URL: "{{ .UPSTREAM_BASE_URL }}"
+  UPSTREAM_API_KEY: "{{ .UPSTREAM_API_KEY }}"
+  DAILY_REQUEST_LIMIT: "{{ .DAILY_REQUEST_LIMIT }}"

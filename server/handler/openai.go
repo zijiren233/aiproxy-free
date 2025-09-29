@@ -8,6 +8,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/labring/aiproxy-free/config"
+	"github.com/labring/aiproxy-free/db"
+	"github.com/labring/aiproxy-free/server/middleware"
 	"github.com/labring/aiproxy-free/server/module"
 	log "github.com/sirupsen/logrus"
 )
@@ -18,6 +20,43 @@ const (
 
 func ChatCompletionsHandler(c *gin.Context) {
 	proxyToOpenAI(c)
+}
+
+func HealthHandler(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"status":  "ok",
+		"message": "Service is healthy",
+	})
+}
+
+func UsageHandler(c *gin.Context) {
+	namespace := c.GetString(middleware.NamespaceKey)
+	if namespace == "" {
+		c.JSON(http.StatusInternalServerError, module.NewInternalServerError())
+		return
+	}
+
+	usedToday, nextResetTime, err := db.GetUsageInfo(namespace)
+	if err != nil {
+		log.Errorf("Failed to get usage info for namespace %s: %v", namespace, err)
+		c.JSON(http.StatusInternalServerError, module.NewInternalServerError())
+		return
+	}
+
+	totalLimit := config.DailyRequestLimit
+	remainingToday := totalLimit - usedToday
+	if remainingToday < 0 {
+		remainingToday = 0
+	}
+
+	response := &module.UsageResponse{
+		TotalLimit:     totalLimit,
+		UsedToday:      usedToday,
+		RemainingToday: remainingToday,
+		NextResetTime:  nextResetTime.UnixMilli(),
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 var proxyResponseHeaders = []string{"Content-Type", "Content-Length"}

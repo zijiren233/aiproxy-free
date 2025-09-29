@@ -59,7 +59,7 @@ func extractAPIKey(authHeader string) string {
 	if strings.HasPrefix(authHeader, "Bearer ") {
 		return strings.TrimPrefix(authHeader, "Bearer ")
 	}
-	return ""
+	return authHeader
 }
 
 func getOrCreateNamespace(ctx context.Context, key string) (string, error) {
