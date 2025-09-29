@@ -44,6 +44,7 @@ func UsageHandler(c *gin.Context) {
 	}
 
 	totalLimit := config.DailyRequestLimit
+
 	remainingToday := totalLimit - usedToday
 	if remainingToday < 0 {
 		remainingToday = 0

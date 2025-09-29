@@ -78,6 +78,7 @@ func getNextResetTime(namespace string) (time.Time, error) {
 	endOfDay := startOfDay + 24*60*60*1000 - 1
 
 	var record module.RateLimitRecord
+
 	result := gdb.Where("namespace = ? AND request_time >= ? AND request_time <= ?",
 		namespace, startOfDay, endOfDay).
 		Order("request_time ASC").
@@ -88,6 +89,7 @@ func getNextResetTime(namespace string) (time.Time, error) {
 			// 如果没有今天的请求记录，下一次重置时间就是明天00:00
 			return time.Date(now.Year(), now.Month(), now.Day()+1, 0, 0, 0, 0, now.Location()), nil
 		}
+
 		return time.Time{}, fmt.Errorf("failed to get earliest request today: %w", result.Error)
 	}
 
