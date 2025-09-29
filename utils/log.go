@@ -12,7 +12,7 @@ import (
 )
 
 var logCallerIgnoreFuncs = map[string]struct{}{
-	"github.com/labring/aiproxy-free/middleware.logColor": {},
+	"github.com/labring/aiproxy-free/server/middleware.logColor": {},
 }
 
 func InitLog(l *log.Logger, debug bool) {

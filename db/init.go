@@ -1,8 +1,11 @@
+// Package db provides database models and services for the aiproxy application.
+// It includes rate limiting functionality and key-namespace mapping services.
 package db
 
 import (
 	"fmt"
 
+	"github.com/labring/aiproxy-free/module"
 	"gorm.io/gorm"
 )
 
@@ -29,7 +32,10 @@ func Close() error {
 }
 
 func migrateDB(db *gorm.DB) error {
-	err := db.AutoMigrate()
+	err := db.AutoMigrate(
+		&module.RateLimitRecord{},
+		&module.KeyMapping{},
+	)
 	if err != nil {
 		return err
 	}
