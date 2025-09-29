@@ -26,7 +26,6 @@ jobs:
   release:
     name: Release AI Proxy
     runs-on: ubuntu-24.04
-    needs: release-web
     permissions:
       contents: write
     strategy:
