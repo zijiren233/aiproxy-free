@@ -60,7 +60,7 @@ spec:
           startupProbe:
             httpGet:
               port: 3000
-              path: /api/status
+              path: /api/healthz
             initialDelaySeconds: 5
             periodSeconds: 3
             failureThreshold: 30
