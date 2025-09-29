@@ -16,10 +16,13 @@ func InitDatabase(dsn string) error {
 	if err != nil {
 		return err
 	}
+
 	if err := migrateDB(db); err != nil {
 		return fmt.Errorf("migrate database failed: %w", err)
 	}
+
 	gdb = db
+
 	return nil
 }
 
@@ -28,6 +31,7 @@ func Close() error {
 	if err != nil {
 		return err
 	}
+
 	return idb.Close()
 }
 

@@ -49,7 +49,11 @@ func proxyToOpenAI(c *gin.Context) {
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Errorf("Failed to proxy request to upstream: %v", err)
-		c.JSON(http.StatusBadGateway, module.NewBadGatewayError("Failed to connect to upstream API"))
+		c.JSON(
+			http.StatusBadGateway,
+			module.NewBadGatewayError("Failed to connect to upstream API"),
+		)
+
 		return
 	}
 	defer resp.Body.Close()
@@ -59,5 +63,5 @@ func proxyToOpenAI(c *gin.Context) {
 	}
 
 	c.Status(resp.StatusCode)
-	io.Copy(c.Writer, resp.Body)
+	_, _ = io.Copy(c.Writer, resp.Body)
 }

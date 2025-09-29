@@ -35,7 +35,11 @@ func NewOpenAIErrorWithParam(errorType, message, param string, code any) *OpenAI
 }
 
 func NewInternalServerError() *OpenAIErrorResponse {
-	return NewOpenAIError("internal_server_error", "Internal server error", http.StatusInternalServerError)
+	return NewOpenAIError(
+		"internal_server_error",
+		"Internal server error",
+		http.StatusInternalServerError,
+	)
 }
 
 func NewInvalidRequestError(message string) *OpenAIErrorResponse {

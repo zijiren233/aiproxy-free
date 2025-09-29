@@ -136,6 +136,7 @@ func main() {
 
 	srv, _ := setupHTTPServer()
 	log.Infof("server started on http://%s", srv.Addr)
+
 	go listenAndServe(srv)
 
 	<-ctx.Done()
@@ -144,9 +145,11 @@ func main() {
 	defer shutdownSrvCancel()
 
 	log.Info("shutting down http server...")
+
 	if err := srv.Shutdown(shutdownSrvCtx); err != nil {
 		log.Error("server forced to shutdown: " + err.Error())
 		return
 	}
+
 	log.Info("server shutdown successfully")
 }

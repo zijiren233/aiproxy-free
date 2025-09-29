@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/labring/aiproxy-free/module"
@@ -13,7 +14,7 @@ func GetNamespace(key string) (string, error) {
 
 	result := gdb.Where("key = ?", key).First(&mapping)
 	if result.Error != nil {
-		if result.Error == gorm.ErrRecordNotFound {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return "", fmt.Errorf("key '%s' not found", key)
 		}
 		return "", fmt.Errorf("failed to get namespace for key '%s': %w", key, result.Error)
@@ -74,7 +75,11 @@ func ListMappingsByNamespace(namespace string) ([]module.KeyMapping, error) {
 
 	result := gdb.Where("namespace = ?", namespace).Find(&mappings)
 	if result.Error != nil {
-		return nil, fmt.Errorf("failed to list mappings for namespace '%s': %w", namespace, result.Error)
+		return nil, fmt.Errorf(
+			"failed to list mappings for namespace '%s': %w",
+			namespace,
+			result.Error,
+		)
 	}
 
 	return mappings, nil

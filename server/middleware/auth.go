@@ -1,6 +1,8 @@
 package middleware
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
@@ -20,19 +22,27 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, module.NewAuthenticationError("Authorization header required"))
+			c.JSON(
+				http.StatusUnauthorized,
+				module.NewAuthenticationError("Authorization header required"),
+			)
 			c.Abort()
+
 			return
 		}
 
 		apiKey := extractAPIKey(authHeader)
 		if apiKey == "" {
-			c.JSON(http.StatusUnauthorized, module.NewAuthenticationError("Invalid authorization format"))
+			c.JSON(
+				http.StatusUnauthorized,
+				module.NewAuthenticationError("Invalid authorization format"),
+			)
 			c.Abort()
+
 			return
 		}
 
-		namespace, err := getOrCreateNamespace(apiKey)
+		namespace, err := getOrCreateNamespace(c.Request.Context(), apiKey)
 		if err != nil {
 			log.Errorf("Failed to get/create namespace for key %s: %v", apiKey, err)
 			c.JSON(http.StatusUnauthorized, module.NewAuthenticationError("Invalid API key"))
@@ -52,38 +62,48 @@ func extractAPIKey(authHeader string) string {
 	return ""
 }
 
-func getOrCreateNamespace(key string) (string, error) {
+func getOrCreateNamespace(ctx context.Context, key string) (string, error) {
 	namespace, err := db.GetNamespace(key)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
-			ns, authorized := checkKeyAndGetNamespace(key)
+			ns, authorized := checkKeyAndGetNamespace(ctx, key)
 			if !authorized {
-				return "", fmt.Errorf("key not authorized")
+				return "", errors.New("key not authorized")
 			}
+
 			if ns == "" {
-				return "", fmt.Errorf("upstream implementation is incorrect: missing Group header")
+				return "", errors.New("upstream implementation is incorrect: missing Group header")
 			}
+
 			err = db.SaveMapping(key, ns)
 			if err != nil {
 				return "", fmt.Errorf("failed to save mapping: %w", err)
 			}
+
 			return ns, nil
 		}
+
 		return "", err
 	}
+
 	return namespace, nil
 }
 
-func checkKeyAndGetNamespace(key string) (string, bool) {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", config.UpstreamBaseURL+"/v1/models", nil)
+func checkKeyAndGetNamespace(ctx context.Context, key string) (string, bool) {
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		config.UpstreamBaseURL+"/v1/models",
+		nil,
+	)
 	if err != nil {
 		log.Errorf("Failed to create permission check request: %v", err)
 		return "", false
 	}
 
 	req.Header.Set("Authorization", "Bearer "+key)
-	resp, err := client.Do(req)
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Errorf("Failed to check API key permission: %v", err)
 		return "", false
@@ -95,5 +115,6 @@ func checkKeyAndGetNamespace(key string) (string, bool) {
 	}
 
 	namespace := resp.Header.Get("Group")
+
 	return namespace, true
 }

@@ -11,7 +11,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-
 func RateLimitMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		namespace := c.GetString(NamespaceKey)
@@ -22,8 +21,14 @@ func RateLimitMiddleware() gin.HandlerFunc {
 		}
 
 		if !checkRateLimit(namespace) {
-			c.JSON(http.StatusTooManyRequests, module.NewRateLimitError(fmt.Sprintf("Daily request limit (%d) exceeded", config.DailyRequestLimit)))
+			c.JSON(
+				http.StatusTooManyRequests,
+				module.NewRateLimitError(
+					fmt.Sprintf("Daily request limit (%d) exceeded", config.DailyRequestLimit),
+				),
+			)
 			c.Abort()
+
 			return
 		}
 
@@ -52,5 +57,6 @@ func checkRateLimit(namespace string) bool {
 		log.Errorf("Failed to check rate limit: %v", err)
 		return false
 	}
+
 	return count < config.DailyRequestLimit
 }
