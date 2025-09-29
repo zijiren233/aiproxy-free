@@ -1,0 +1,13 @@
+FROM scratch
+COPY registry registry
+COPY manifests manifests
+COPY scripts scripts
+
+ENV DEBUG="false"
+ENV DEBUG_SQL="false"
+ENV DSN="<dsn-placeholder>"
+ENV UPSTREAM_BASE_URL="https://aiproxy.hzh.sealos.run"
+ENV UPSTREAM_API_KEY=""
+ENV DAILY_REQUEST_LIMIT="30"
+
+CMD ["bash scripts/init.sh"]

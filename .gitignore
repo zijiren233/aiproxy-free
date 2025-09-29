@@ -3,4 +3,5 @@
 **/.DS_Store
 !*.gitkeep
 **.local
-aiproxy-free*
+aiproxy-free
+aiproxy-free.exe
